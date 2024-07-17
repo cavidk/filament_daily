@@ -42,6 +42,7 @@ class ProductResource extends Resource
 //                   ->searchable(isIndividual: true, isGlobal: false),
                 TextColumn::make('price')
                     ->sortable()
+                    //format value
                     ->money('usd')
                     ->getStateUsing(function (Product $record): float {
                         return $record->price;
