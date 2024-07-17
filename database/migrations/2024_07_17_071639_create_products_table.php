@@ -17,6 +17,12 @@ return new class extends Migration
             $table->integer('price');
             $table->timestamps();
         });
+
+        Schema::table('products', function (Blueprint $table) {
+            $table->enum('status',
+             ['in stock', 'sold out', 'coming soon'])->default('in stock');
+        });
+
     }
 
     /**
