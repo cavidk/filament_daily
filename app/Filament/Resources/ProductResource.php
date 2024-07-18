@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
-use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
@@ -12,8 +11,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ProductResource extends Resource
 {
@@ -25,9 +22,32 @@ class ProductResource extends Resource
     {
         return $form
             ->schema([
-                //create a form and make it required field
-                TextInput::make('name')->required(),
-                TextInput::make('price')->required(),
+                // Create a form and make fields required
+                TextInput::make('name')
+                    ->required(),
+                     // Span 2 columns for better layout
+                TextInput::make('price')
+                    ->required()
+                    ->columnSpan(1), // Span 1 column
+
+                //options for select status
+
+                Forms\Components\Select::make('status')
+                    ->options([
+                        'in stock' => 'in stock',
+                        'sold out' => 'sold out',
+                        'coming soon' => 'coming soon',
+                    ])
+                    ->columnSpan(1), // Span 1 column
+
+                //making it with radio buttons
+
+                /*Forms\Components\Radio::make('status')
+                 ->options([
+                     'in stock' => 'in stock',
+                     'sold out' => 'sold out',
+                     'coming soon' => 'coming soon',
+                 ]),*/
             ]);
     }
 
@@ -35,18 +55,18 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                //make table sortable and searchable
+                // Make table sortable and searchable
                 TextColumn::make('name')
                     ->sortable()
                     ->searchable(),
-//                   ->searchable(isIndividual: true, isGlobal: false),
                 TextColumn::make('price')
                     ->sortable()
-                    //format value
+                    // Format value
                     ->money('usd')
                     ->getStateUsing(function (Product $record): float {
                         return $record->price;
                     }),
+                TextColumn::make('status'),
             ])
             ->filters([
                 //
