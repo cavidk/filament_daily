@@ -3,12 +3,16 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
+use App\Filament\Resources\ProductResource\RelationManagers\TagsRelationManager;
 use App\Models\Product;
 use Filament\Forms;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieTagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\SpatieTagsColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -25,7 +29,7 @@ class ProductResource extends Resource
                 // Create a form and make fields required
                 TextInput::make('name')
                     ->required(),
-                     // Span 2 columns for better layout
+                // Span 2 columns for better layout
                 TextInput::make('price')
                     ->required()
                     ->columnSpan(1), // Span 1 column
@@ -33,6 +37,8 @@ class ProductResource extends Resource
                 //options for select status
 
                 Forms\Components\Select::make('status')
+                    ->searchable()
+                    ->preload()
                     ->options([
                         'in stock' => 'in stock',
                         'sold out' => 'sold out',
@@ -40,14 +46,20 @@ class ProductResource extends Resource
                     ])
                     ->columnSpan(1), // Span 1 column
 
-                //making it with radio buttons
+                //make category preload and searchable
+                Forms\Components\Select::make('category_id')
+                    ->searchable()
+                    ->preload()
+                    ->createOptionForm([
 
-                /*Forms\Components\Radio::make('status')
-                 ->options([
-                     'in stock' => 'in stock',
-                     'sold out' => 'sold out',
-                     'coming soon' => 'coming soon',
-                 ]),*/
+                        TextInput::make('name')
+                    ])
+                    ->relationship('category', 'name'),
+
+                //Tags
+                Select::make('tags')
+                    ->relationship('tags', 'name')
+                    ->multiple(),
             ]);
     }
 
@@ -55,18 +67,28 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
+
                 // Make table sortable and searchable
                 TextColumn::make('name')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('price')
                     ->sortable()
+                    ->badge()
+
                     // Format value
                     ->money('usd')
                     ->getStateUsing(function (Product $record): float {
                         return $record->price;
                     }),
-                TextColumn::make('status'),
+                TextColumn::make('status')
+                    ->badge(),
+
+                /*TextColumn::make('category.name')
+                ->badge()
+                ->color('success'),
+                TextColumn::make('tag.name')*/
+
             ])
             ->filters([
                 //
@@ -89,7 +111,7 @@ class ProductResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            TagsRelationManager::class
         ];
     }
 
