@@ -36,14 +36,20 @@ class TagsRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
+                  //added
+                Tables\Actions\AttachAction::make()
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                  //added
+                Tables\Actions\DetachAction::make()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                  //added
+                Tables\Actions\DetachBulkAction::make()
                 ]),
             ]);
     }
