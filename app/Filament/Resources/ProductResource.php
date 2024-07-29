@@ -14,13 +14,26 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieTagsColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use PhpParser\Builder;
+use PHPUnit\Util\Filter;
 
 class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    /**
+     * @var array|string[]
+     */
+
+
+    protected static array $statuses = [
+        'in stock' => 'in stock',
+        'sold out' => 'sold out',
+        'coming soon' => 'coming soon',
+    ];
 
     public static function form(Form $form): Form
     {
@@ -29,29 +42,21 @@ class ProductResource extends Resource
                 // Create a form and make fields required
                 TextInput::make('name')
                     ->required(),
+
                 // Span 2 columns for better layout
                 TextInput::make('price')
                     ->required()
                     ->columnSpan(1), // Span 1 column
 
                 //options for select status
-
-                Forms\Components\Select::make('status')
-                    ->searchable()
-                    ->preload()
-                    ->options([
-                        'in stock' => 'in stock',
-                        'sold out' => 'sold out',
-                        'coming soon' => 'coming soon',
-                    ])
-                    ->columnSpan(1), // Span 1 column
+                Forms\Components\Radio::make('status')
+                    ->options(self::$statuses),
 
                 //make category preload and searchable
                 Forms\Components\Select::make('category_id')
                     ->searchable()
                     ->preload()
                     ->createOptionForm([
-
                         TextInput::make('name')
                     ])
                     ->relationship('category', 'name'),
@@ -65,6 +70,7 @@ class ProductResource extends Resource
 
     public static function table(Table $table): Table
     {
+
         return $table
             ->columns([
 
@@ -75,14 +81,25 @@ class ProductResource extends Resource
                 TextColumn::make('price')
                     ->sortable()
                     ->badge()
-
                     // Format value
                     ->money('usd')
                     ->getStateUsing(function (Product $record): float {
-                        return $record->price;
+                        return $record->price / 100;
                     }),
+
+                //Status
                 TextColumn::make('status')
                     ->badge(),
+
+                //Category
+                TextColumn::make('category.name'),
+
+                //Product - Tag
+                TextColumn::make('tags.name')
+                    ->badge()
+                    ->color('success')
+                    ->icon('heroicon-o-tag'),
+
 
                 /*TextColumn::make('category.name')
                 ->badge()
@@ -91,17 +108,25 @@ class ProductResource extends Resource
 
             ])
             ->filters([
-                //
-            ])
+
+//                Tables\Filters\Filter::make('is_featured')
+//                    ->query(fn(Builder $query): Builder => $query->where('is_featured', true)),
+
+                SelectFilter::make('status')
+                    ->options(self::$statuses)
+              ])
+
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
+
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
+
             ->defaultSort('price', 'desc')
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make(),
