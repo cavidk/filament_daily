@@ -6,28 +6,28 @@ use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers\TagsRelationManager;
 use App\Models\Product;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\SpatieTagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Columns\SpatieTagsColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use PhpParser\Builder;
-use PHPUnit\Util\Filter;
+use Illuminate\Database\Eloquent\Builder;
+
 
 class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
     /**
      * @var array|string[]
      */
-
 
     protected static array $statuses = [
         'in stock' => 'in stock',
@@ -100,7 +100,6 @@ class ProductResource extends Resource
                     ->color('success')
                     ->icon('heroicon-o-tag'),
 
-
                 /*TextColumn::make('category.name')
                 ->badge()
                 ->color('success'),
@@ -113,20 +112,49 @@ class ProductResource extends Resource
 //                    ->query(fn(Builder $query): Builder => $query->where('is_featured', true)),
 
                 SelectFilter::make('status')
-                    ->options(self::$statuses)
-              ])
+                    ->options(self::$statuses),
+
+                //added category filter
+                SelectFilter::make('category')
+                    ->relationship('category', 'name'),
+
+                Filter::make('created_from')
+                    ->form([
+                        DatePicker::make('created_from'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['created_from'],
+                            fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                        );
+                    }),
+
+                //add datetime(created_at & updated_at)
+                Filter::make('created_until')
+                    ->form([
+                        DatePicker::make('created_until'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['created_until'],
+                            fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                        );
+                    }),
+            ])
+
+/*     //update schema, view filter above
+         layout: Tables\Enums\FiltersLayout::AboveContent)
+           ->filtersFormColumns(4)*/
 
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
-
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-
             ->defaultSort('price', 'desc')
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make(),
