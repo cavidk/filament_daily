@@ -89,7 +89,14 @@ class ProductResource extends Resource
 
                 //Status
                 TextColumn::make('status')
-                    ->badge(),
+                    ->badge()
+                    //color new format(match)
+                    ->color(fn(string $state): string => match ($state) {
+                        'in stock' => 'primary',
+                        'sold out' => 'danger',
+                        'coming soon' => 'info',
+                    }),
+
 
                 //Category
                 TextColumn::make('category.name'),
@@ -141,10 +148,9 @@ class ProductResource extends Resource
                         );
                     }),
             ])
-
-/*     //update schema, view filter above
-         layout: Tables\Enums\FiltersLayout::AboveContent)
-           ->filtersFormColumns(4)*/
+            /*     //update schema, view filter above
+                     layout: Tables\Enums\FiltersLayout::AboveContent)
+                       ->filtersFormColumns(4)*/
 
             ->actions([
                 Tables\Actions\EditAction::make(),
