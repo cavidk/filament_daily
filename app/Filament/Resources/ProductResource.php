@@ -72,12 +72,19 @@ class ProductResource extends Resource
     {
 
         return $table
+            //make column reorderable by name
+            ->reorderable('price')
             ->columns([
 
                 // Make table sortable and searchable
                 TextColumn::make('name')
                     ->sortable()
                     ->searchable(),
+
+                /* make name column Input-type
+                Tables\Columns\TextInputColumn::make('name')
+                    ->rules(['required', 'min:3']),*/
+
                 TextColumn::make('price')
                     ->sortable()
                     ->badge()
@@ -88,18 +95,27 @@ class ProductResource extends Resource
                     }),
 
                 //Status
-                TextColumn::make('status')
-                    ->badge()
-                    //color new format(match)
-                    ->color(fn(string $state): string => match ($state) {
-                        'in stock' => 'primary',
-                        'sold out' => 'danger',
-                        'coming soon' => 'info',
-                    }),
+                Tables\Columns\SelectColumn::make('status')
+                    ->options(self::$statuses),
+
+                /*Another way to create
+                      * TextColumn::make('status')
+                         ->badge()
+                         //color new format(match)
+                         ->color(fn(string $state): string => match ($state) {
+                             'in stock' => 'primary',
+                             'sold out' => 'danger',
+                             'coming soon' => 'info',
+                         }),*/
 
 
                 //Category
                 TextColumn::make('category.name'),
+
+                //Active and inactive
+                Tables\Columns\ToggleColumn::make('is_active'),
+                /*Tables\Columns\CheckboxColumn::make('is_active'),*/
+
 
                 //Product - Tag
                 TextColumn::make('tags.name')
@@ -107,10 +123,14 @@ class ProductResource extends Resource
                     ->color('success')
                     ->icon('heroicon-o-tag'),
 
-                /*TextColumn::make('category.name')
-                ->badge()
-                ->color('success'),
-                TextColumn::make('tag.name')*/
+
+                /* colors from these options:
+                       danger
+                       gray
+                       info
+                       primary
+                       success
+                       warning  */
 
             ])
             ->filters([
